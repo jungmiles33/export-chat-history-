@@ -117,6 +117,291 @@ class ClaudeCodeParser(ChatParser):
         return str(content)
 
 
+class GPTParser(ChatParser):
+    """GPT 聊天记录解析器"""
+
+    def __init__(self):
+        # 查找 GPT 聊天记录存储位置
+        self.base_dir = self._find_gpt_dir()
+
+    def _find_gpt_dir(self):
+        """查找 GPT 聊天记录存储目录"""
+        # 尝试常见的位置
+        possible_dirs = [
+            os.path.expanduser("~/Library/Application Support/OpenAI"),
+            os.path.expanduser("~/.openai"),
+            os.path.expanduser("~/Documents/OpenAI"),
+            os.path.expanduser("~/AppData/Roaming/OpenAI")
+        ]
+
+        for d in possible_dirs:
+            if os.path.exists(d):
+                return d
+
+        return None
+
+    def list_sessions(self):
+        """列出 GPT 聊天会话"""
+        if not self.base_dir or not os.path.exists(self.base_dir):
+            return []
+
+        sessions = []
+        for root, dirs, files in os.walk(self.base_dir):
+            for filename in files:
+                if filename.endswith(".json") or filename.endswith(".jsonl"):
+                    sessions.append({
+                        "name": filename,
+                        "path": os.path.join(root, filename),
+                        "sessions": []
+                    })
+
+        return sessions
+
+    def parse_session(self, filepath, include_tools=False, include_media=False):
+        """解析 GPT 聊天记录"""
+        messages = []
+        try:
+            with open(filepath, encoding='utf-8') as f:
+                data = json.load(f)
+                # 尝试多种可能的数据结构
+                if 'messages' in data:
+                    messages_data = data['messages']
+                elif 'conversations' in data:
+                    messages_data = data['conversations']
+                else:
+                    # 假设直接是消息数组
+                    messages_data = data
+
+                for msg in messages_data:
+                    try:
+                        role = msg.get('role', '')
+                        content = msg.get('content', '')
+                        timestamp = msg.get('created', '') or msg.get('timestamp', '')
+
+                        if role == 'user':
+                            messages.append({
+                                'role': '🧑 用户',
+                                'text': content.strip(),
+                                'time': self._format_time(timestamp)
+                            })
+                        elif role == 'assistant' or role == 'system':
+                            messages.append({
+                                'role': '🤖 GPT',
+                                'text': content.strip(),
+                                'time': self._format_time(timestamp)
+                            })
+                    except:
+                        pass
+        except:
+            # 如果解析失败，返回简单的错误信息
+            messages.append({
+                'role': '🧑 用户',
+                'text': 'GPT聊天记录解析功能正在开发中...',
+                'time': datetime.now().isoformat()
+            })
+            messages.append({
+                'role': '🤖 系统',
+                'text': 'GPT聊天记录解析需要访问特定的存储格式，当前版本暂不支持。',
+                'time': datetime.now().isoformat()
+            })
+
+        return messages
+
+    def _format_time(self, timestamp):
+        """格式化时间戳"""
+        if isinstance(timestamp, int) or isinstance(timestamp, float):
+            return datetime.fromtimestamp(timestamp).isoformat()
+        return timestamp
+
+
+class GeminiParser(ChatParser):
+    """Gemini 聊天记录解析器"""
+
+    def __init__(self):
+        # 查找 Gemini 聊天记录存储位置
+        self.base_dir = self._find_gemini_dir()
+
+    def _find_gemini_dir(self):
+        """查找 Gemini 聊天记录存储目录"""
+        possible_dirs = [
+            os.path.expanduser("~/Library/Application Support/Google/Gemini"),
+            os.path.expanduser("~/.gemini"),
+            os.path.expanduser("~/Documents/Google/Gemini"),
+            os.path.expanduser("~/AppData/Roaming/Google/Gemini")
+        ]
+
+        for d in possible_dirs:
+            if os.path.exists(d):
+                return d
+
+        return None
+
+    def list_sessions(self):
+        """列出 Gemini 聊天会话"""
+        if not self.base_dir or not os.path.exists(self.base_dir):
+            return []
+
+        sessions = []
+        for root, dirs, files in os.walk(self.base_dir):
+            for filename in files:
+                if filename.endswith(".json") or filename.endswith(".jsonl"):
+                    sessions.append({
+                        "name": filename,
+                        "path": os.path.join(root, filename),
+                        "sessions": []
+                    })
+
+        return sessions
+
+    def parse_session(self, filepath, include_tools=False, include_media=False):
+        """解析 Gemini 聊天记录"""
+        messages = []
+        try:
+            with open(filepath, encoding='utf-8') as f:
+                data = json.load(f)
+                # 尝试多种可能的数据结构
+                if 'messages' in data:
+                    messages_data = data['messages']
+                elif 'conversations' in data:
+                    messages_data = data['conversations']
+                else:
+                    messages_data = data
+
+                for msg in messages_data:
+                    try:
+                        role = msg.get('role', '')
+                        content = msg.get('content', '')
+                        timestamp = msg.get('created', '') or msg.get('timestamp', '')
+
+                        if role == 'user':
+                            messages.append({
+                                'role': '🧑 用户',
+                                'text': content.strip(),
+                                'time': self._format_time(timestamp)
+                            })
+                        elif role == 'model' or role == 'assistant':
+                            messages.append({
+                                'role': '🤖 Gemini',
+                                'text': content.strip(),
+                                'time': self._format_time(timestamp)
+                            })
+                    except:
+                        pass
+        except:
+            messages.append({
+                'role': '🧑 用户',
+                'text': 'Gemini聊天记录解析功能正在开发中...',
+                'time': datetime.now().isoformat()
+            })
+            messages.append({
+                'role': '🤖 系统',
+                'text': 'Gemini聊天记录解析需要访问特定的存储格式，当前版本暂不支持。',
+                'time': datetime.now().isoformat()
+            })
+
+        return messages
+
+    def _format_time(self, timestamp):
+        """格式化时间戳"""
+        if isinstance(timestamp, int) or isinstance(timestamp, float):
+            return datetime.fromtimestamp(timestamp).isoformat()
+        return timestamp
+
+
+class DoubaoParser(ChatParser):
+    """豆包聊天记录解析器"""
+
+    def __init__(self):
+        # 查找豆包聊天记录存储位置
+        self.base_dir = self._find_doubao_dir()
+
+    def _find_doubao_dir(self):
+        """查找豆包聊天记录存储目录"""
+        possible_dirs = [
+            os.path.expanduser("~/Library/Application Support/Doubao"),
+            os.path.expanduser("~/.doubao"),
+            os.path.expanduser("~/Documents/Doubao"),
+            os.path.expanduser("~/AppData/Roaming/Doubao")
+        ]
+
+        for d in possible_dirs:
+            if os.path.exists(d):
+                return d
+
+        return None
+
+    def list_sessions(self):
+        """列出豆包聊天会话"""
+        if not self.base_dir or not os.path.exists(self.base_dir):
+            return []
+
+        sessions = []
+        for root, dirs, files in os.walk(self.base_dir):
+            for filename in files:
+                if filename.endswith(".json") or filename.endswith(".jsonl"):
+                    sessions.append({
+                        "name": filename,
+                        "path": os.path.join(root, filename),
+                        "sessions": []
+                    })
+
+        return sessions
+
+    def parse_session(self, filepath, include_tools=False, include_media=False):
+        """解析豆包聊天记录"""
+        messages = []
+        try:
+            with open(filepath, encoding='utf-8') as f:
+                data = json.load(f)
+                # 尝试多种可能的数据结构
+                if 'messages' in data:
+                    messages_data = data['messages']
+                elif 'conversations' in data:
+                    messages_data = data['conversations']
+                else:
+                    messages_data = data
+
+                for msg in messages_data:
+                    try:
+                        role = msg.get('role', '')
+                        content = msg.get('content', '')
+                        timestamp = msg.get('created', '') or msg.get('timestamp', '')
+
+                        if role == 'user':
+                            messages.append({
+                                'role': '🧑 用户',
+                                'text': content.strip(),
+                                'time': self._format_time(timestamp)
+                            })
+                        elif role == 'assistant' or role == 'model':
+                            messages.append({
+                                'role': '🤖 豆包',
+                                'text': content.strip(),
+                                'time': self._format_time(timestamp)
+                            })
+                    except:
+                        pass
+        except:
+            messages.append({
+                'role': '🧑 用户',
+                'text': '豆包聊天记录解析功能正在开发中...',
+                'time': datetime.now().isoformat()
+            })
+            messages.append({
+                'role': '🤖 系统',
+                'text': '豆包聊天记录解析需要访问特定的存储格式，当前版本暂不支持。',
+                'time': datetime.now().isoformat()
+            })
+
+        return messages
+
+    def _format_time(self, timestamp):
+        """格式化时间戳"""
+        if isinstance(timestamp, int) or isinstance(timestamp, float):
+            return datetime.fromtimestamp(timestamp).isoformat()
+        return timestamp
+
+
 class WeChatParser(ChatParser):
     """微信聊天记录解析器"""
 
@@ -293,7 +578,10 @@ class ChatExporter:
             "wechat": WeChatParser,
             "qq": QQParser,
             "slack": SlackParser,
-            "discord": DiscordParser
+            "discord": DiscordParser,
+            "gpt": GPTParser,
+            "gemini": GeminiParser,
+            "doubao": DoubaoParser
         }
 
         if chat_app.lower() not in parsers:
@@ -361,7 +649,10 @@ class ChatExporter:
             "wechat": "微信",
             "qq": "QQ",
             "slack": "Slack",
-            "discord": "Discord"
+            "discord": "Discord",
+            "gpt": "GPT",
+            "gemini": "Gemini",
+            "doubao": "豆包"
         }
         return names.get(self.chat_app, self.chat_app)
 

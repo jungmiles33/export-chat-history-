@@ -24,22 +24,37 @@ license: MIT
 - 文件格式：JSONL（每行一个JSON）
 - 支持选择项目和会话
 
-### 2. 微信
+### 2. GPT
+- 存储位置：`~/Library/Application Support/OpenAI` 或 `~/.openai`
+- 文件格式：JSON文件
+- 支持导出聊天记录
+
+### 3. Gemini
+- 存储位置：`~/Library/Application Support/Google/Gemini`
+- 文件格式：JSON文件
+- 支持导出聊天记录
+
+### 4. 豆包
+- 存储位置：`~/Library/Application Support/Doubao` 或 `~/.doubao`
+- 文件格式：JSON文件
+- 支持导出聊天记录
+
+### 5. 微信
 - 存储位置：`~/Documents/WeChat Files/`
 - 文件格式：数据库文件
 - 支持导出聊天记录和媒体文件
 
-### 3. QQ
+### 6. QQ
 - 存储位置：`~/Library/Containers/com.tencent.qq/Data/Library/Application Support/QQ/`
 - 文件格式：数据库文件
 - 支持导出聊天记录和表情
 
-### 4. Slack
+### 7. Slack
 - 存储位置：`~/Library/Application Support/Slack/`
 - 文件格式：JSON文件
 - 支持导出公共频道和私人消息
 
-### 5. Discord
+### 8. Discord
 - 存储位置：`~/Library/Application Support/discord/`
 - 文件格式：JSON文件
 - 支持导出服务器和私人消息
@@ -54,10 +69,13 @@ license: MIT
 支持的聊天应用：
  #  应用名称           描述
 1  Claude Code        导出Claude Code对话历史
-2  微信                导出微信聊天记录
-3  QQ                  导出QQ聊天记录
-4  Slack               导出Slack聊天记录
-5  Discord             导出Discord聊天记录
+2  GPT                导出GPT聊天记录
+3  Gemini             导出Gemini聊天记录
+4  豆包                导出豆包聊天记录
+5  微信                导出微信聊天记录
+6  QQ                  导出QQ聊天记录
+7  Slack               导出Slack聊天记录
+8  Discord             导出Discord聊天记录
 
 请输入应用编号（如1）：
 ```
@@ -118,6 +136,9 @@ license: MIT
 |------|------|
 | `/导出聊天记录` | 完整交互流程（选应用 → 选会话 → 导出） |
 | `/导出聊天记录 Claude Code` | 直接导出Claude Code的对话历史 |
+| `/导出聊天记录 GPT` | 直接导出GPT的聊天记录 |
+| `/导出聊天记录 Gemini` | 直接导出Gemini的聊天记录 |
+| `/导出聊天记录 豆包` | 直接导出豆包的聊天记录 |
 | `/导出聊天记录 微信` | 直接导出微信的聊天记录 |
 | `/导出聊天记录 最近5个` | 导出最近5个会话 |
 | `/导出聊天记录 全部` | 导出所有会话 |
